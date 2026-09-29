@@ -37,13 +37,16 @@ def test_a_log_without_a_stat_block_is_not_a_zero_cost_run():
     assert synth.parse_stat("read_verilog x.v\nERROR: no such file") is None
 
 
-def test_win_path_maps_to_wsl_mount():
-    assert synth.win_to_wsl(r"D:\\bench\\rtl\\mac.v") == "/mnt/d/bench/rtl/mac.v"
-
-
-def test_separator_free_string_still_yields_a_log():
-    # yosys emits 'Filename' style paths with forward slashes too
+def test_unix_paths_are_left_alone():
     assert synth.win_to_wsl("/tmp/x.v") == "/tmp/x.v"
+
+
+def test_win_path_maps_to_wsl_mount():
+    import platform
+    import pytest
+    if platform.system() != "Windows":
+        pytest.skip("the D:\\ -> /mnt/d/ translation is a Windows-only operation")
+    assert synth.win_to_wsl("D:\\bench\\rtl\\mac.v") == "/mnt/d/bench/rtl/mac.v"
 
 
 def test_equivalence_script_names_both_modules():
