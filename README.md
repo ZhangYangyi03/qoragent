@@ -3,6 +3,16 @@
 Search synthesis passes. Keep a candidate only when the netlist got smaller AND
 the function was proven identical.
 
+Small, self-contained counterpart to
+[agentic-eda](https://github.com/ZhangYangyi03/agentic-eda), which is the larger
+version of this idea (13 strategies x 11 benchmarks, abc cec for combinational
+proof, yosys equiv_induct for sequential, all the way to GDSII, plus a measured
+self-test of the verifier itself). This repo exists because the core claim fits
+in one file and one command: the equivalence gate, why it has to be
+`equiv_opt -assert`, and the two traps -- `yosys -q` swallowing the `stat` block
+this metric comes from, and `abc -g` rejecting `NOT`. If you want the result,
+read agentic-eda. If you want to see the gate in 40 lines, read `synth.py` here.
+
 ## Why the gate, and not a heuristic
 
 Synthesis optimisation has one failure mode that matters: a pass makes the
