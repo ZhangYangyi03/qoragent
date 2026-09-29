@@ -1,0 +1,33 @@
+name: ci
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: install yosys
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq yosys
+          yosys -V
+      - name: install package
+        run: pip install -e . pytest
+      - name: unit tests
+        run: pytest -q tests
+      - name: search runs and keeps a proven-equivalent win
+        run: |
+          python -m qoragent search --rtl bench/rtl/mac.v --top mac \
+            --workdir /tmp/qorsearch --json /tmp/qor.json
+          python - <<'PY'
+          import json
+          d = json.load(open("/tmp/qor.json"))
+          assert d["reduction"] > 0.5, d
+          assert d["kept"], "the search kept nothing"
+          kept = [s for s in d["steps"] if s["verdict"] == "KEPT"]
+          assert all(s["equivalent"] is True for s in kept), kept
+          PY

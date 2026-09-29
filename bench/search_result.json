@@ -1,0 +1,202 @@
+{
+  "top": "mac",
+  "baseline": {
+    "cells": 2190,
+    "wires": 350,
+    "wire_bits": 3692,
+    "memories": 0,
+    "seconds": 1.28,
+    "breakdown": {
+      "$_AND_": 1050,
+      "$_NOT_": 17,
+      "$_OR_": 399,
+      "$_SDFFE_PP0P_": 32,
+      "$_XOR_": 692
+    }
+  },
+  "best": {
+    "cells": 674,
+    "wires": 618,
+    "wire_bits": 725,
+    "memories": 0,
+    "seconds": 2.92,
+    "breakdown": {
+      "$_SDFFE_PP0P_": 32,
+      "$lut": 642
+    }
+  },
+  "reduction": 0.6922,
+  "kept": [
+    "abc-lut6"
+  ],
+  "steps": [
+    {
+      "name": "abc-lut6",
+      "why": "LUT mapping with 6-input cells: the usual area win",
+      "verdict": "KEPT",
+      "equivalent": true,
+      "seconds": 0.0,
+      "detail": "2190 -> 674 cells, proven equivalent",
+      "metric": {
+        "cells": 674,
+        "wires": 618,
+        "wire_bits": 725,
+        "memories": 0,
+        "seconds": 2.96,
+        "breakdown": {
+          "$_SDFFE_PP0P_": 32,
+          "$lut": 642
+        }
+      }
+    },
+    {
+      "name": "abc-lut4",
+      "why": "4-input LUTs suit some architectures better",
+      "verdict": "REJECTED_NOT_SMALLER",
+      "equivalent": null,
+      "seconds": 0.0,
+      "detail": "962 cells vs best 674",
+      "metric": {
+        "cells": 962,
+        "wires": 906,
+        "wire_bits": 1013,
+        "memories": 0,
+        "seconds": 2.88,
+        "breakdown": {
+          "$_SDFFE_PP0P_": 32,
+          "$lut": 930
+        }
+      }
+    },
+    {
+      "name": "abc-area",
+      "why": "generic gates, minimum area for ASIC flows",
+      "verdict": "REJECTED_NOT_SMALLER",
+      "equivalent": null,
+      "seconds": 0.0,
+      "detail": "2033 cells vs best 674",
+      "metric": {
+        "cells": 2033,
+        "wires": 1977,
+        "wire_bits": 2084,
+        "memories": 0,
+        "seconds": 2.53,
+        "breakdown": {
+          "$_AND_": 938,
+          "$_NOT_": 23,
+          "$_OR_": 353,
+          "$_SDFFE_PP0P_": 32,
+          "$_XOR_": 687
+        }
+      }
+    },
+    {
+      "name": "wreduce",
+      "why": "trims provably-unused bits out of arithmetic",
+      "verdict": "REJECTED_NOT_SMALLER",
+      "equivalent": null,
+      "seconds": 0.0,
+      "detail": "2190 cells vs best 674",
+      "metric": {
+        "cells": 2190,
+        "wires": 350,
+        "wire_bits": 3692,
+        "memories": 0,
+        "seconds": 1.4,
+        "breakdown": {
+          "$_AND_": 1050,
+          "$_NOT_": 17,
+          "$_OR_": 399,
+          "$_SDFFE_PP0P_": 32,
+          "$_XOR_": 692
+        }
+      }
+    },
+    {
+      "name": "opt-full",
+      "why": "the aggressive optimisation script, run harder",
+      "verdict": "REJECTED_NOT_SMALLER",
+      "equivalent": null,
+      "seconds": 0.0,
+      "detail": "2190 cells vs best 674",
+      "metric": {
+        "cells": 2190,
+        "wires": 350,
+        "wire_bits": 3692,
+        "memories": 0,
+        "seconds": 1.69,
+        "breakdown": {
+          "$_AND_": 1050,
+          "$_NOT_": 17,
+          "$_OR_": 399,
+          "$_SDFFE_PP0P_": 32,
+          "$_XOR_": 692
+        }
+      }
+    },
+    {
+      "name": "share",
+      "why": "resource sharing: reuses one operator for disjoint uses",
+      "verdict": "REJECTED_NOT_SMALLER",
+      "equivalent": null,
+      "seconds": 0.0,
+      "detail": "2190 cells vs best 674",
+      "metric": {
+        "cells": 2190,
+        "wires": 350,
+        "wire_bits": 3692,
+        "memories": 0,
+        "seconds": 1.64,
+        "breakdown": {
+          "$_AND_": 1050,
+          "$_NOT_": 17,
+          "$_OR_": 399,
+          "$_SDFFE_PP0P_": 32,
+          "$_XOR_": 692
+        }
+      }
+    },
+    {
+      "name": "retime",
+      "why": "abc with a delay target: depth/area trade",
+      "verdict": "REJECTED_NOT_SMALLER",
+      "equivalent": null,
+      "seconds": 0.0,
+      "detail": "674 cells vs best 674",
+      "metric": {
+        "cells": 674,
+        "wires": 618,
+        "wire_bits": 725,
+        "memories": 0,
+        "seconds": 3.19,
+        "breakdown": {
+          "$_SDFFE_PP0P_": 32,
+          "$lut": 642
+        }
+      }
+    },
+    {
+      "name": "dfflegalize",
+      "why": "explicit flop mapping, can expose more logic sharing",
+      "verdict": "REJECTED_NOT_SMALLER",
+      "equivalent": null,
+      "seconds": 0.0,
+      "detail": "2190 cells vs best 674",
+      "metric": {
+        "cells": 2190,
+        "wires": 350,
+        "wire_bits": 3692,
+        "memories": 0,
+        "seconds": 1.54,
+        "breakdown": {
+          "$_AND_": 1050,
+          "$_NOT_": 17,
+          "$_OR_": 399,
+          "$_SDFFE_PP0P_": 32,
+          "$_XOR_": 692
+        }
+      }
+    }
+  ],
+  "netlist": "D:\\Users\\china\\Desktop\\\u9879\u76ee_\u5f00\u53d1\\qoragent\\bench\\_search3\\best\\netlist.v"
+}
