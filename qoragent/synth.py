@@ -8,6 +8,7 @@ is worse than no number.
 
 import base64
 import os
+import platform
 import re
 import subprocess
 import time
@@ -71,6 +72,8 @@ def win_to_wsl(path):
     duplicated separators must collapse -- WSL does not object to "//" but the
     string is then wrong in logs and in equality checks.
     """
+    if platform.system() != "Windows":
+        return path if os.path.isabs(path) else os.path.abspath(path)
     if path.startswith("/"):
         return _collapse(path)
     p = _collapse(path.replace("\\", "/"))
@@ -82,11 +85,20 @@ def win_to_wsl(path):
 
 
 def wsl_bash(script, timeout=300):
-    b64 = base64.b64encode(script.encode("utf-8")).decode("ascii")
-    cmd = "echo %s | base64 -d > /tmp/qa_run.sh && bash /tmp/qa_run.sh" % b64
+    """Run bash where yosys lives: WSL on Windows, bash directly on Linux.
+
+    The Windows path carries the script as base64 because this host passes
+    non-ASCII argv through wsl.exe unreliably. The Linux path exists because
+    leaving it out broke CI with FileNotFoundError: 'wsl' on ubuntu-latest.
+    """
+    if platform.system() == "Windows":
+        b64 = base64.b64encode(script.encode("utf-8")).decode("ascii")
+        cmd = ["wsl", "-d", WSL_DISTRO, "--", "bash", "-lc",
+               "echo %s | base64 -d > /tmp/qa_run.sh && bash /tmp/qa_run.sh" % b64]
+    else:
+        cmd = ["bash", "-lc", script]
     try:
-        r = subprocess.run(["wsl", "-d", WSL_DISTRO, "--", "bash", "-lc", cmd],
-                           capture_output=True, timeout=timeout)
+        r = subprocess.run(cmd, capture_output=True, timeout=timeout)
         return (r.stdout or b"").decode("utf-8", "replace"), r.returncode
     except subprocess.TimeoutExpired:
         return "", -9
