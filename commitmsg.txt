@@ -1,0 +1,39 @@
+equiv: the gate is tested in the direction that fails quietly
+
+Handing the gate a broken circuit and watching it say no is the easy half, and
+the half that fails loudly. The half that fails QUIETLY is handing it a correct
+circuit: a gate that answers NO to a correct design looks strict rather than
+broken, and it turns the search into a program that can never keep anything. Both
+directions are now measured and checked in as RTL.
+
+  control                  expected   proven       gold     gate   cells
+  same function, renamed   True       True         2190     2190      +0
+  smaller and different    False      False        2190     2038    -152
+
+mac_alt.v is the same multiply-accumulate renamed; mac_wrong.v is the same unit
+with `+ c` dropped -- 152 cells smaller and wrong, which is the shape of every
+unproven area win. Without the gate the search's best result would have been that
+one.
+
+The positive control is not ceremony. It found a real defect: with equiv_simple
+alone the identical renamed circuit came back with 97 unproven cells, so the gate
+said NO to a circuit that IS the circuit.
+
+  equiv_simple alone                 97 unproven -> "not equivalent"   WRONG
+  equiv_simple + equiv_induct         0 unproven -> proven              right
+
+An accumulator's state is only reachable by induction. Fixed.
+
+Two more, same exercise:
+
+  * two files defining the SAME module name are not a comparison -- yosys keeps
+    one, equiv_make has nothing to compare, and the run returns no verdict at
+    all. That was reported as "no equivalence verdict produced", which made a
+    naming mistake look like a hard proof problem. It now names the cause.
+  * a candidate whose metric could not be read has been shown to be UNMEASURED,
+    not shown to be larger. dfflegalize on the mac exits cleanly and prints no
+    stat block; REJECTED_NOT_SMALLER claimed a comparison that never happened.
+    It is FAILED, with the reason, and there is a test that pins it.
+
+Search behaviour unchanged on the mac (2190 -> 674, 69.2% fewer, abc-lut6), tests
+12 passed, and CI runs the controls before the search.

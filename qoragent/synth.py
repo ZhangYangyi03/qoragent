@@ -176,9 +176,21 @@ def equivalence_script(gold_path, gate_path, gold_top, gate_top):
     which is why this is a gate and not a report: the shell return code is the
     verdict.
 
+    BOTH halves are needed, and the positive control is what says so. Measured on
+    an accumulator that is identical on both sides but renamed:
+
+        equiv_simple alone                  97 unproven -> "not equivalent"  WRONG
+        equiv_simple + equiv_induct          0 unproven -> proven             right
+
+    equiv_simple stops at the combinational cone; an accumulator's state has to
+    be reached by induction. A gate that cannot say yes to an identical circuit
+    would reject every correct optimisation the search finds, and it would look
+    like a strict gate rather than a broken one -- so `bench/rtl/mac_alt.v` (the
+    same function, renamed) is checked in as the positive control.
+
     Verified in both directions on this host:
-      identical function  -> "Equivalence successfully proven!"
-      a + b  vs  a + b + 1 -> "Found 5 unproven $equiv cells" and ERROR
+      mac vs mac_alt (same function, renamed) -> "Equivalence successfully proven!"
+      mac vs mac_small (smaller, `+ c` gone)  -> "97 unproven $equiv cells" and ERROR
     """
     return (
         "read_verilog %s\n" % win_to_wsl(gold_path) +
@@ -186,7 +198,7 @@ def equivalence_script(gold_path, gate_path, gold_top, gate_top):
         "proc\nopt_clean\n"
         "equiv_make %s %s equiv\n" % (gold_top, gate_top) +
         "hierarchy -top equiv\n"
-        "equiv_simple\n"
+        "equiv_simple\nequiv_induct\n"
         "equiv_status -assert\n"
     )
 
@@ -203,6 +215,16 @@ def prove_equivalent(gold_path, gate_path, gold_top, gate_top, workdir,
     ys = os.path.join(workdir, "equiv.ys")
     with open(ys, "w", encoding="utf-8", newline="\n") as f:
         f.write(equivalence_script(gold_path, gate_path, gold_top, gate_top))
+    # Two files that define the SAME module name are not a comparison: yosys
+    # reads the second over the first, so both sides become the same module and
+    # equiv_make has nothing to compare. Measured: it returns no verdict at all,
+    # which is reported below as "no equivalence verdict produced" -- technically
+    # true and useless as a diagnosis. Say the real reason instead.
+    if gold_top == gate_top:
+        return False, ("both sides are named %r; reading two files that define the "
+                       "same module leaves one of them, so there is nothing to "
+                       "compare. Give the second copy a different module name."
+                       % gold_top)
     mount = win_to_wsl(workdir)
     log, rc = wsl_bash("cd %s || exit 7\nyosys -s equiv.ys 2>&1\n" % mount,
                        timeout=timeout)

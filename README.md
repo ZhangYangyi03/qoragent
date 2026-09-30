@@ -60,6 +60,46 @@ problem: most plausible optimisations do nothing on a given design, and the
 value is in knowing which, quickly, with a decision procedure rather than an
 opinion.
 
+## The gate is tested in the direction that fails quietly
+
+Handing the gate a broken circuit and watching it say no is the easy half. It is
+also the half that fails loudly. The half that fails QUIETLY is the other one: a
+gate that answers NO to a correct circuit looks strict, not broken, and it turns
+the search into a program that can never keep anything. So both directions are
+measured, and both are checked in as RTL:
+
+    control                  expected   proven       gold     gate   cells
+    same function, renamed   True       True         2190     2190      +0
+    smaller and different    False      False        2190     2038    -152
+
+`mac_alt.v` is the same multiply-accumulate with a different module name, and it
+must be proven. `mac_wrong.v` is the same unit with `+ c` dropped: 152 cells
+smaller, and wrong. Without the gate the search's own best result would have been
+that second one.
+
+The positive control is not ceremony. It found a real defect. With `equiv_simple`
+alone, the identical renamed circuit came back with 97 unproven cells -- the gate
+said NO to a circuit that IS the circuit:
+
+    equiv_simple alone                 97 unproven -> "not equivalent"   WRONG
+    equiv_simple + equiv_induct         0 unproven -> proven              right
+
+An accumulator's state is only reachable by induction; `equiv_simple` stops at the
+combinational cone. That is fixed, and it was only visible because a control asked
+the gate for a yes.
+
+Two smaller things the same exercise turned up:
+
+  * two files that define the SAME module name are not a comparison -- yosys keeps
+    one of them, `equiv_make` has nothing to compare, and the run returns no
+    verdict at all. The message now says that instead of "no verdict produced".
+  * a candidate whose metric could not be read has been shown to be UNMEASURED,
+    not shown to be larger. `dfflegalize` exits cleanly and prints no stat block;
+    reporting that as REJECTED_NOT_SMALLER claims a comparison that never
+    happened. It is FAILED now.
+
+    python bench/run_equiv_controls.py --replay    the record, no yosys needed
+
 ## The two traps this repo exists to document
 
 1. `yosys -q` suppresses the `stat` block. The metric comes from `stat`, so a
@@ -95,6 +135,8 @@ nothing. `equiv` exits 0 only on a proof.
     qoragent/synth.py      run yosys, parse the metric, prove equivalence
     qoragent/optimize.py   the candidate table, the greedy search, the ledger
     bench/rtl/mac.v        the design under search
+    bench/rtl/mac_alt.v    the positive control: same function, renamed
+    bench/rtl/mac_wrong.v  the negative control: smaller, and wrong
 
 ## Honest limits
 
@@ -106,7 +148,9 @@ nothing. `equiv` exits 0 only on a proof.
   Timing is not measured at all -- no STA is in this flow -- so a smaller
   netlist is not claimed to be a faster one.
 - Equivalence here is combinational-plus-flop-level over the same module
-  boundary. Retiming across a hierarchy boundary, or a pass that changes the
+  boundary, and it needs BOTH `equiv_simple` and `equiv_induct` -- measured, the
+  first alone rejects an identical renamed circuit. Buses wider than the mac's,
+  memories, and multi-clock retiming are untested. Retiming across a hierarchy boundary, or a pass that changes the
   clock structure, is out of scope and would need `equiv_opt -multiclock`.
 
 ## License

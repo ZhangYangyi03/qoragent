@@ -1,0 +1,30 @@
+{
+  "controls": [
+    {
+      "name": "same function, renamed",
+      "gold": "mac.v",
+      "gold_top": "mac",
+      "gate": "mac_alt.v",
+      "gate_top": "mac_alt",
+      "expect": true,
+      "why": "the positive control. A gate that rejects an identical circuit is not strict, it is broken, and it would reject every correct result",
+      "proven": true,
+      "gold_cells": 2190,
+      "gate_cells": 2190,
+      "detail": ""
+    },
+    {
+      "name": "smaller and different",
+      "gold": "mac.v",
+      "gold_top": "mac",
+      "gate": "mac_wrong.v",
+      "gate_top": "mac_small",
+      "expect": false,
+      "why": "the negative control: 152 cells smaller and wrong. This is the shape of every unproven area win",
+      "proven": false,
+      "gold_cells": 2190,
+      "gate_cells": 2038,
+      "detail": "97 unproven equivalence cells:"
+    }
+  ]
+}

@@ -141,9 +141,15 @@ def search(rtl_path, top, workdir, timeout=300, candidates=None,
         # first: does it even help? synthsise and read the number
         full = BASELINE + "\n" + passes
         res = synth.run_synth(rtl_path, top, full, wd, timeout=timeout)
-        if not res.ok:
+        # A candidate whose metric could not be measured has NOT been shown to be
+        # too big -- it has been shown to be unmeasured, and those are different
+        # verdicts. Measured: `dfflegalize` on the mac exits cleanly and prints no
+        # stat block, and reporting that as REJECTED_NOT_SMALLER claims a
+        # comparison that never happened.
+        if not res.ok or res.metric is None:
             steps.append(Step(name, why, None, None, "FAILED",
-                              detail=res.log[-300:]))
+                              detail=(res.log[-300:] if res.log
+                                      else "no stat block in the output")))
             continue
         improved = res.metric.cells < best_metric.cells
         if not improved:

@@ -41,3 +41,30 @@ def test_candidate_list_compiles_to_a_usable_pass_string():
         assert passes.strip(), name
         assert why.strip(), name
         assert "\\n" not in passes, "passes must be real newlines"
+
+
+def test_a_candidate_that_could_not_be_measured_is_not_reported_as_too_big():
+    """Two verdicts, not one. A run with no stat block has been shown to be
+    unmeasured, not shown to be larger, and REJECTED_NOT_SMALLER claims a
+    comparison that never happened. Measured: `dfflegalize` on the mac exits
+    cleanly and prints no stat block at all.
+    """
+    from qoragent import synth as _synth
+
+    class FakeSynth:
+        calls = 0
+        def run_synth(self, rtl, top, body, wd, timeout=300, **kw):
+            FakeSynth.calls += 1
+            if FakeSynth.calls == 1:                     # the baseline
+                return _synth.SynthResult(True, _synth.Metric(cells=100), None, "stat", body)
+            return _synth.SynthResult(False, None, None, "no stat here", body)
+
+    real = optimize.synth.run_synth
+    optimize.synth.run_synth = FakeSynth().run_synth
+    try:
+        r = optimize.search("x.v", "t", "wd", candidates=[("bad", "opt", "why")])
+    finally:
+        optimize.synth.run_synth = real
+    assert r.steps[0].verdict == "FAILED"
+    assert r.steps[0].verdict != "REJECTED_NOT_SMALLER"
+    assert "stat" in r.steps[0].detail

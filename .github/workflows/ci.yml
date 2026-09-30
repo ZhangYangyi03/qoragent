@@ -19,6 +19,9 @@ jobs:
         run: pip install -e . pytest
       - name: unit tests
         run: pytest -q tests
+      - name: the equivalence gate is tested in both directions
+        run: python bench/run_equiv_controls.py
+
       - name: search runs and keeps a proven-equivalent win
         run: |
           python -m qoragent search --rtl bench/rtl/mac.v --top mac \
