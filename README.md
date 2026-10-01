@@ -156,3 +156,18 @@ nothing. `equiv` exits 0 only on a proof.
 ## License
 
 Apache-2.0.
+
+
+## Where this sits in the chain
+
+This is one of four tools, and `autoforge` drives them. The sibling that joins
+them is [eda-spine](https://github.com/ZhangYangyi03/eda-spine), and the question
+it exists to ask is the one this repo's gate cannot:
+
+    equivalence is one property. Does the kept netlist still satisfy the
+    properties that were proved of the RTL?
+
+Equivalence survives that question. So does area, for a counter: 10 cells into 8
+in 0.6 s, and the netlist proves the property `"advances by exactly one"` just
+as the RTL did. What does not survive is everything the property set never
+mentioned -- which is why the other two tools are in the same chain.
